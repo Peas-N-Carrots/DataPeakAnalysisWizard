@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from abc import ABC, abstractmethod
-
+import pyperclip as ppc
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
@@ -48,7 +48,7 @@ def process_data(data, step=1, change_sense=0.0015, zero_threshold=0.005):
 
     return (out, peaks)
 
-def plot_processed_data(plot_data):
+def plot_processed_data(plot_data, title):
     fig, ax = plt.subplots()
     colors = ['red', 'green', 'blue', 'yellow', 'black', 'purple', 'orange', 'brown']
 
@@ -72,6 +72,9 @@ def plot_processed_data(plot_data):
             group_ref.append(area)
         
         group_refs.append(group_ref)
+
+    ax.set_ylabel("Percent Elongation")
+    ax.set_title(title)
 
     return fig, group_refs
 
@@ -100,6 +103,7 @@ class application(tk.Tk):
         self.default_folder = ""
         self.default_name = ""
         self.df = None
+        self.prev_columns = 0
         self.all_columns = []
         self.column_names = []
         self.processed_df = []
@@ -113,7 +117,7 @@ class application(tk.Tk):
 
         # Window Setup
         self.title("DIC Speckle Data Peak Analysis Wizard")
-        self.geometry("400x400")
+        self.geometry("600x400")
         
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -131,12 +135,17 @@ class application(tk.Tk):
         self.next_button = ttk.Button(self.nav_frame, text="Next", command=self.go_next)
         self.next_button.pack(side='right', padx=10, pady=10)
 
+        self.restart_button = ttk.Button(self.nav_frame, text="Restart", command=self.go_page1)
+
         # Create and store pages
         page_classes = [Page1, Page2, Page3, Page4, Page5]
         self.pages = [PageClass(self.page_container, controller=self) for PageClass in page_classes]
 
         self.current_page_index = 0
         self.show_page(0)
+
+        
+        self.protocol("WM_DELETE_WINDOW", self.quit)
 
     def show_page(self, index, prev=-1):
         if prev != -1:
@@ -154,6 +163,10 @@ class application(tk.Tk):
         self.next_button.config(
             text='Finish' if self.current_page_index == len(self.pages) - 1 else 'Next'
         )
+        if self.current_page_index == len(self.pages) - 1:
+            self.restart_button.pack(side='right', padx=10, pady=10)
+        else:
+            self.restart_button.pack_forget()
 
     def go_back(self):
         if self.current_page_index > 0:
@@ -167,7 +180,14 @@ class application(tk.Tk):
             self.current_page_index += 1
             self.show_page(self.current_page_index, prev=prev_page_index)
         else:
-            self.quit()
+            result = tk.messagebox.askyesno(title="Confirm Finish", message="Do you want to close the wizard?")
+            if result:
+                self.quit()
+    
+    def go_page1(self):
+        prev_page_index = self.current_page_index
+        self.current_page_index = 0
+        self.show_page(self.current_page_index, prev=prev_page_index)
 
 class Page_Template(ttk.Frame, ABC):
     def __init__(self, parent, controller):
@@ -287,6 +307,11 @@ class Page2(Page_Template):
         for i, col in enumerate(self.controller.df.columns):
             self.key.insert("", tk.END, values=(i, col))
         
+        new_columns = len(self.controller.df.columns)
+        if self.controller.prev_columns != new_columns:
+            self.controller.prev_columns = new_columns
+            self.list_clear()
+
         self.list_updated()
     
     def key_select(self, *args):
@@ -360,8 +385,6 @@ class Page2(Page_Template):
             self.button_remove.config(state='disabled')
             self.button_clear.config(state='disabled')
         self.check_proceed()
-        print(self.controller.all_columns)
-        print(self.controller.column_names)
     
     def validate_range(self, input_str):
         prev = 'start'
@@ -506,9 +529,9 @@ class Page3(Page_Template):
         self.button_vis=ttk.Button(self, text="Visualize", command=self.visualize)
 
         self.settings = {
-            "Slope Threshold" : [None, None, None, tk.DoubleVar(), 0.15, "The maximum magnitude of the line's slope that will considered flat (AKA rounded to zero). Increase to detect more peaks, decrease to detect less", 0, -1],
-            "Zero Threshold" : [None, None, None, tk.DoubleVar(), 0.5, "The minimum y-value to be considered for a peak. Increase to stop detecting zero ranges between pogos, decrease to detect lower peaks that are missed", 0, -1],
-            "Step" : [None, None, None, tk.IntVar(), 2, "The frequency at which points are sampled: check slope every [1] point, [2] points, [50] pionts? Increase to 'smooth' rough data, decrease to detect fine fluctuations. ", 1, 50]
+            "Slope Threshold" : [None, None, None, tk.DoubleVar(), 0.15, "The maximum magnitude of a line's slope that can be considered flat (part of a peak). Increase to widen peaks; decrease to narrow peaks.", 0, -1],
+            "Zero Threshold" : [None, None, None, tk.DoubleVar(), 0.5, "The minimum y-value of a point to be detected as part of a peak. Increase to avoid false peaks in zero-ranges; decrease to avoid missing lower peaks.", 0, -1],
+            "Step" : [None, None, None, tk.IntVar(), 1, "The frequency at which points are sampled (check slope every [1] point, [2] points, [50] points). Accepts integer values 1-50. Increase to smooth rough data; decrease to detect fine fluctuations.", 1, 50]
         }
         
         vcmd = (self.register(self.valid_key), '%P')
@@ -532,9 +555,13 @@ class Page3(Page_Template):
     def on_enter(self):
         self.gen_dfs()
         self.update_global_parameters()
+        self.update_next_button(False)
 
     def on_exit(self):
         self.process()
+
+    def update_next_button(self, val):
+        self.controller.next_button.config(state='normal' if val else 'disabled')
 
     def gen_dfs(self):
         df_clean = self.controller.df.apply(pd.to_numeric, errors='coerce').dropna()
@@ -543,7 +570,7 @@ class Page3(Page_Template):
         self.controller.processed_df = []
         for i, group in enumerate(self.controller.all_columns):
             averaged = df_clean.iloc[:, group].mean(axis=1)
-            new_df = pd.DataFrame({"Group "+str(i) : averaged})
+            new_df = pd.DataFrame({self.controller.column_names[i] : averaged})
             self.controller.processed_df.append(new_df)
     
     def valid_key(self, entry_text):
@@ -554,7 +581,8 @@ class Page3(Page_Template):
 
     def update_global_parameters(self, *args):
         self.button_vis.config(state='normal')
-        self.controller.next_button.config(state='normal')
+        # self.controller.next_button.config(state='normal')
+        self.update_next_button(False)
 
         for index, (key, value) in enumerate(self.settings.items()):
             try:
@@ -571,7 +599,7 @@ class Page3(Page_Template):
             except:
                 self.controller.parameters[key] = value[4]
                 self.button_vis.config(state='disabled')
-                self.controller.next_button.config(state='disabled')
+                # self.controller.next_button.config(state='disabled')
 
     def reset(self, key):
         self.settings[key][3].set(self.settings[key][4])
@@ -581,15 +609,25 @@ class Page3(Page_Template):
     
     def process(self):
         self.controller.processed_data = []
+        prev_groups = -1
+        self.update_next_button(True)
         for df in self.controller.processed_df:
+            processed_group = process_data(df, 
+                change_sense=self.controller.parameters["Slope Threshold"], 
+                zero_threshold=self.controller.parameters["Zero Threshold"], 
+                step=self.controller.parameters["Step"])
 
-            self.controller.processed_data.append(process_data(df, 
-                                                               change_sense=self.controller.parameters["Slope Threshold"], 
-                                                               zero_threshold=self.controller.parameters["Zero Threshold"], 
-                                                               step=self.controller.parameters["Step"]))
+            self.controller.processed_data.append(processed_group)
+            if (prev_groups != -1 and prev_groups != len(processed_group[1])):
+                self.update_next_button(False)
+            prev_groups = len(processed_group[1])
+        
+        
 
     def visualize(self):
         self.process()
+
+        graph_count=0
 
         if self.popup and self.popup.winfo_exists():
             self.popup.destroy()
@@ -601,17 +639,21 @@ class Page3(Page_Template):
         self.popup.visible_lines = []
 
         for i, df in enumerate(self.controller.processed_df):
+            ttk.Label(self.popup, text=self.controller.column_names[i] + " (" + str(len(self.controller.processed_data[i][1])) + " peaks)").grid(row=0, column=i, padx=10, pady=10)
+
             self.popup.visible_lines.append(tk.BooleanVar(value=True))
             cb = ttk.Checkbutton(self.popup, variable=self.popup.visible_lines[i], command=self.refresh)
-            cb.pack(side="left", padx=10, pady=10)
+            cb.grid(row=1, column=i, padx=10)
 
-        self.popup.fig, self.popup.group_refs = plot_processed_data(self.controller.processed_data)
+            graph_count += 1
+
+        self.popup.fig, self.popup.group_refs = plot_processed_data(self.controller.processed_data, os.path.splitext(os.path.basename(self.controller.csv_file_path))[0])
 
         self.popup.canvas = FigureCanvasTkAgg(self.popup.fig, master=self.popup)
         self.popup.canvas.draw()
-        self.popup.canvas.get_tk_widget().pack(padx=10, pady=10)
+        self.popup.canvas.get_tk_widget().grid(row=2, column=0, columnspan=graph_count, padx=10, pady=10)
 
-        ttk.Button(self.popup, text="Close", command=self.popup.destroy).pack(side="bottom", pady=10)
+        ttk.Button(self.popup, text="Close", command=self.popup.destroy).grid(row=3, column=0, columnspan=graph_count, pady=10)
     
     def refresh(self):
         lines = []
@@ -664,21 +706,28 @@ class Page5(Page_Template):
         super().__init__(parent, controller)
 
         self.columnconfigure(0, weight=1)
-        ttk.Label(self, text="Download Data").grid(row=0, column=0, columnspan=2, pady=20)
+        ttk.Label(self, text="Download Summary Data").grid(row=0, column=0, columnspan=2, pady=20)
 
         # the contents of the entry to watch for changes
         self.entry_text = tk.StringVar()
         self.entry_text.trace_add("write", self.update_path)
 
         # browse button
-        ttk.Button(self, text="Browse", command=self.choose_location).grid(row=1, column=1, pady=10, padx=10)
-
-        self.download = ttk.Button(self, text="Download", command=self.download_csv)
-        self.download.grid(row=2, column=0, columnspan=2, pady=10, padx=10)
+        ttk.Button(self, text="Save", command=self.choose_location).grid(row=1, column=1, pady=10, padx=10)
         
         # path display box
         self.display_box = ttk.Entry(self, textvariable=self.entry_text)
         self.display_box.grid(row=1, column=0, sticky="ew", pady=10, padx=10)
+
+        # copy button
+        ttk.Button(self, text="Copy Table", command=self.copy_to_clipboard).grid(row=2, column=0, pady=20, columnspan=2)
+
+        # output preview frame
+        self.frame = ttk.Frame(self)
+        self.frame.grid(row=3, column=0, sticky="ew", columnspan=2, pady=10)
+
+        self.preview = None
+        self.bind("<Configure>", lambda event: self.resize_preview(self.controller.winfo_width()))
     
     def on_enter(self):
         self.entry_text.set(self.controller.save_file_path)
@@ -689,10 +738,42 @@ class Page5(Page_Template):
                 for j, group in enumerate(self.controller.processed_data):
                     stat = find_stats(group[0], group[1], string)
 
-                    column_name = "Group " + str(j)
+                    column_name = self.controller.column_names[j]
 
                     self.controller.output_data[column_name + " " + string] = stat
+        
+        self.generate_preview()
     
+    def generate_preview(self):
+        if self.preview:
+            self.preview.destroy()
+        
+        df = self.controller.output_data
+        self.preview = ttk.Treeview(self.frame, columns=list(df.columns), show="headings", height=len(df))
+
+        for col in list(df.columns):
+            self.preview.heading(col, text=col)
+            self.preview.column(col, anchor='center')
+
+        for i in range(len(df)):
+            values = list(self.controller.output_data.iloc[i])
+            values = [f"{val:.3f}" for val in values]
+            self.preview.insert("", tk.END, values=values)
+        
+        self.preview.pack()
+        
+        self.resize_preview(self.controller.winfo_width())
+
+    def resize_preview(self, page_width):
+        self.preview.pack_forget()
+
+        cols = list(self.controller.output_data.columns)
+        cols_len = len(cols)
+        for col in cols:
+            self.preview.column(col, width=page_width//cols_len)
+        
+        self.preview.pack()
+
     def choose_location(self):
         new_loc = filedialog.asksaveasfilename(title="Select a destination location",
                                                          filetypes=(("CSV files", "*.csv"),),
@@ -700,6 +781,7 @@ class Page5(Page_Template):
                                                          initialfile=self.controller.default_name,)
         if (new_loc != ""):
             self.entry_text.set(new_loc)
+            self.download_csv()
 
     def update_path(self, *args):
         self.controller.save_file_path = self.display_box.get()
@@ -709,11 +791,18 @@ class Page5(Page_Template):
     def download_csv(self):
         try:
             self.controller.output_data.to_csv(self.controller.save_file_path, index=False)
-            tk.messagebox.showinfo(title="Download successful", message="The file was successfully saved to your computer in the specified location.")
+            tk.messagebox.showinfo(title="Download Successful", message="The file was successfully saved to your computer in the specified location.")
         except:
-            tk.messagebox.showwarning(title="Invalid file location", message="The output CSV file could not be saved at the specified location. Re-select a path and try again.")
+            tk.messagebox.showwarning(title="Save Failed", message="The output CSV file could not be saved at the specified location. Re-select a path and try again.")
+    
+    def copy_to_clipboard(self):
+        copy_string = "\t".join(list(self.controller.output_data.columns))
 
+        for row in self.controller.output_data.itertuples(index=False):
+            copy_string += "\n" + "\t".join(list(map(str, row)))
 
+        ppc.copy(copy_string)
+        tk.messagebox.showinfo(title="Table Copied", message="The data summary table was copied to your clipboard. Paste into a spreadsheet.")
 
 if __name__ == "__main__":
     main()
