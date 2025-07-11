@@ -14,6 +14,7 @@ Read how to use the wizard below.
 This is what the wizard will look like when you first open it. Use this page to select a data file.
 - Click "Browse" to choose a .csv file from your device.
 - The entry box will populate with the file path which may be edited manually.
+
 Once a valid file path is selected, the next button will become active.
 
 ### Page 2
@@ -25,6 +26,7 @@ Here, you will select individual or averaged groups of columns to analyze. The k
   2. Use the key to click, ctrl+click, and shift+click on the columns you want to include. The entry box will be auto-populated.
 - Optionally input a "Group Name." If the box is left blank, the name will default to either the single column's heading from the CSV or "Avg" + the specified range of columns.
 - Click "Add Data Column" when finished to confirm the group. Use the "Remove Last Added" and "Clear" buttons when you make a mistake.
+
 Once at least one group has been confirmed, the next button will become active.
 
 ### Page 3
@@ -34,6 +36,7 @@ Adjust the parameters of the peak detection algorithm here.
 - Each entry box has a default value that can be changed to adjust the specific thresholds and parameters used to detect peaks. Values that generate good results on one dataset may not generate good results on another.
 - The "↻" button will refresh its adjacent field to its default value.
 - The "?" button will give a short description about what the parameter does and how to leverage it.
+
 As long as each box is populated, the "Visualize" button will be active. This opens a popup to review the results of the peak detection and must be viewed before moving on.
 
 ### Page 3 Popup
@@ -54,6 +57,7 @@ Once the user closes the popup, if the algorithm detected the same number of pea
 
 Customize what data will be generated and output regarding the detected peaks.
 - Check on and off which data should be generated. For sine waves, maximum is probably the only relevant statistic; for the square wave pogos, middle or median are likely more important.
+
 Once at least one box is checked, the next button will become active.
 
 ### Page 5
@@ -63,4 +67,5 @@ Finally, the last page lets you save the output data.
 - Check the preview table to see the output data and make sure everything looks good. Each statistic has a column per group. Rows represent that group and statistic's value per peak.
 - Click "Save" to select a destination location and save an output CSV.
 - Click "Copy Table" to copy the contents of the table to your clipboard to paste into Excel.
+
 Click "Finish" to close the wizard or "Restart" to quickly navigate back to page 1; this can be useful if you want to keep some settings for your next analysis (same groups and stats but different input file, same file but different groups, etc).
