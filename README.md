@@ -46,6 +46,7 @@ This page shows a graph of each group's data with highlighted regions to depict 
   1. Ensure the correct number of peaks are being detected per group.
   2. Ensure groups are each detecting the same number of peaks.
   3. Verify that the detected peaks look accurate.
+
 Once the user closes the popup, if the algorithm detected the same number of peaks per group, the next button will be activated. Any adjustments to parameters on Page 3 will require the user to double check the graph again before proceeding.
 
 ### Page 4
