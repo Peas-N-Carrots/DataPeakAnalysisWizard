@@ -21,8 +21,8 @@ Once a valid file path is selected, the next button will become active.
 
 Here, you will select individual or averaged groups of columns to analyze. The key shows the index of each column in the previously selected CSV.
 - Use the key to input a range of indexes in the "Column(s) Range" entry box. Either...
- 1. Manually specify columns using "," to separate individual indexes and ":" for ranges.
- 2. Use the key to click, ctrl+click, and shift+click on the columns you want to include. The entry box will be auto-populated.
+  1. Manually specify columns using "," to separate individual indexes and ":" for ranges.
+  2. Use the key to click, ctrl+click, and shift+click on the columns you want to include. The entry box will be auto-populated.
 - Optionally input a "Group Name." If the box is left blank, the name will default to either the single column's heading from the CSV or "Avg" + the specified range of columns.
 - Click "Add Data Column" when finished to confirm the group. Use the "Remove Last Added" and "Clear" buttons when you make a mistake.
 Once at least one group has been confirmed, the next button will become active.
@@ -43,9 +43,9 @@ This page shows a graph of each group's data with highlighted regions to depict 
 - The legend on top allows you to isolate single or specific groups' graphs instead of viewing them all on top of each other.
 - Additionally, users may look at the legend to see how many peaks in each group are being detected.
 - On this page, users should...
-⋅⋅⋅⋅1. Ensure the correct number of peaks are being detected per group.
-⋅⋅⋅⋅2. Ensure groups are each detecting the same number of peaks.
-⋅⋅⋅⋅3. Verify that the detected peaks look accurate.
+  1. Ensure the correct number of peaks are being detected per group.
+  2. Ensure groups are each detecting the same number of peaks.
+  3. Verify that the detected peaks look accurate.
 Once the user closes the popup, if the algorithm detected the same number of peaks per group, the next button will be activated. Any adjustments to parameters on Page 3 will require the user to double check the graph again before proceeding.
 
 ### Page 4
