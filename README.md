@@ -21,8 +21,8 @@ Once a valid file path is selected, the next button will become active.
 
 Here, you will select individual or averaged groups of columns to analyze. The key shows the index of each column in the previously selected CSV.
 - Use the key to input a range of indexes in the "Column(s) Range" entry box. Either...
-  1. Manually specify columns using "," to separate individual indexes and ":" for ranges.
-  2. Use the key to click, ctrl+click, and shift+click on the columns you want to include. The entry box will be auto-populated.
+ 1. Manually specify columns using "," to separate individual indexes and ":" for ranges.
+ 2. Use the key to click, ctrl+click, and shift+click on the columns you want to include. The entry box will be auto-populated.
 - Optionally input a "Group Name." If the box is left blank, the name will default to either the single column's heading from the CSV or "Avg" + the specified range of columns.
 - Click "Add Data Column" when finished to confirm the group. Use the "Remove Last Added" and "Clear" buttons when you make a mistake.
 Once at least one group has been confirmed, the next button will become active.
