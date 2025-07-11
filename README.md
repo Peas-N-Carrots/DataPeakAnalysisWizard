@@ -10,6 +10,7 @@ Read how to use the wizard below.
 
 ### Page 1
 ![Page 1 screenshot](DICscreenshots/Page1.png)
+
 This is what the wizard will look like when you first open it. Use this page to select a data file.
 - Click "Browse" to choose a .csv file from your device.
 - The entry box will populate with the file path which may be edited manually.
@@ -17,6 +18,7 @@ Once a valid file path is selected, the next button will become active.
 
 ### Page 2
 ![Page 2 screenshot](DICscreenshots/Page2.png)
+
 Here, you will select individual or averaged groups of columns to analyze. The key shows the index of each column in the previously selected CSV.
 - Use the key to input a range of indexes in the "Column(s) Range" entry box. Either...
 ⋅⋅⋅⋅1. Manually specify columns using "," to separate individual indexes and ":" for ranges.
@@ -27,6 +29,7 @@ Once at least one group has been confirmed, the next button will become active.
 
 ### Page 3
 ![Page 3 screenshot](DICscreenshots/Page3.png)
+
 Adjust the parameters of the peak detection algorithm here.
 - Each entry box has a default value that can be changed to adjust the specific thresholds and parameters used to detect peaks. Values that generate good results on one dataset may not generate good results on another.
 - The "↻" button will refresh its adjacent field to its default value.
@@ -35,6 +38,7 @@ As long as each box is populated, the "Visualize" button will be active. This op
 
 ### Page 3 Popup
 ![Page 3 Popup screenshot](DICscreenshots/Page3Vis.png)
+
 This page shows a graph of each group's data with highlighted regions to depict the ranges that were identified as peaks.
 - The legend on top allows you to isolate single or specific groups' graphs instead of viewing them all on top of each other.
 - Additionally, users may look at the legend to see how many peaks in each group are being detected.
@@ -46,12 +50,14 @@ Once the user closes the popup, if the algorithm detected the same number of pea
 
 ### Page 4
 ![Page 4 screenshot](DICscreenshots/Page4.png)
+
 Customize what data will be generated and output regarding the detected peaks.
 - Check on and off which data should be generated. For sine waves, maximum is probably the only relevant statistic; for the square wave pogos, middle or median are likely more important.
 Once at least one box is checked, the next button will become active.
 
 ### Page 5
 ![Page 5 screenshot](DICscreenshots/Page5.png)
+
 Finally, the last page lets you save the output data.
 - Check the preview table to see the output data and make sure everything looks good. Each statistic has a column per group. Rows represent that group and statistic's value per peak.
 - Click "Save" to select a destination location and save an output CSV.
