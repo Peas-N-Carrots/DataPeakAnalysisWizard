@@ -4,4 +4,5 @@ This is a small project I created for a local biotech company. This company uses
 
 The front end of the wizard was made using tkinter, and the back end processing and visualization was primarily done with Pandas and Matplotlib.
 
-![Page 1 screenshot](DICscreenshots/Page1.png)
+### Page 1
+This is what the wizard will look like when you open it up
